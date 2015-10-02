@@ -1,0 +1,388 @@
+In the NEOv1-1-4.ino:
+
+Comment out line 105 for more space
+=
+//#define VISUAL // COMMENT TO DISABLE VISUAL NAVIAGTION
+
+Define our different hold times at lines 114 to 122 between #define Debug    7 and #include "LowPower.h"
+=
+//Define how long we hold the button for various functions.
+#define HOLD_OFF          32    //Off Mode 0.5s to 1.5s
+#define HOLD_CONJURE      92    //Conjure Mode 1.5s to 3.5s
+#define HOLD_CONJURELOOP  208   //Always set to ( HOLD_BYPASS1 - 3 )
+#define HOLD_BYPASS1      211   //Bypass 3.5s to 5.5s
+#define HOLD_COLORCHANGE  330   //Color Program Mode 5.5s to 7.5s
+#define HOLD_BYPASS2      450   //Bypass 7.5s to 12s
+#define HOLD_RESET        650   //Reset 12s to 20s
+#define HOLD_FUCKEDUP     900  // +20 seconds , OH, CRAP I SCREWED UP... GO BACK TO BLANK
+
+Declare Conjure mode variables in lines 281 to 286 after 
+#if defined(VISUAL)
+	const PROGMEM char osmCC_flahs_names[] ={"BLANK___/RED_____/SUNSET__/ORANGE__/YELLOW__/LEMON___/CHARTRE_/LAWNGR__/GCAMOL__/GREEN___/IXTAPA__/AQUA____/EBLUE___/CYAN____/JADE____/SKYBLUE_/AZURE___/BLUE____/GRAPE___/BUBBLGUM/MAGENTA_/PINK____/HOT_PINK/DEEP_PNK/FUSCIA__/ALLWIHTE/FIXWHITE/GRNWHITE/BLUWHITE/SFTPINK_/GHSTBLUE/GHSTGRN_/GHSTRED_/"};
+#endif
+=
+//////////////////////////////////////////////////////////////////////////////////////////////
+//                  CONJURE MODE VARIABLES                                                  //
+//////////////////////////////////////////////////////////////////////////////////////////////
+volatile boolean CONJUREMODE_FLAG = false;
+volatile boolean CONJUREMODE_ENABLED = false;
+volatile int CONJUREMODE_MODE;
+
+To ensure the mode you have set to conjure is remembered in deep sleep and is the mode that is selected coming out of sleep replace this (around line 531):
+eeCheck();
+		CurrentUserBundle = EEPROM.read(2);eeCheck();
+		if (WentToSleep)
+		{
+			 CurrentUserMode = 1 ;
+	    }
+		else
+		{
+			CurrentUserMode   = EEPROM.read(3);eeCheck();
+		}
+		MaxUserModes = UserCmodes[CurrentUserBundle][0];
+		Mode = UserCmodes[CurrentUserBundle][CurrentUserMode];
+	WentToSleep = 0;	
+	eeCheck();EEPROM.write(5,0);eeCheck();// did not went to sleep
+	
+	With this
+	=
+	eeCheck(); CurrentUserBundle = EEPROM.read(2);eeCheck();
+	if (WentToSleep)
+	{ 
+		CONJUREMODE_MODE = EEPROM.read(488); eeCheck();
+		if (CONJUREMODE_MODE > 0)
+		{
+			CONJUREMODE_ENABLED = true;
+			CurrentUserMode = CONJUREMODE_MODE;
+		}
+		else {CurrentUserMode = 1;}
+	}
+	else { eeCheck(); CurrentUserMode = EEPROM.read(3); eeCheck(); }
+	MaxUserModes = UserCmodes[CurrentUserBundle][0];
+	Mode = UserCmodes[CurrentUserBundle][CurrentUserMode];
+	WentToSleep = 0;	
+	eeCheck(); EEPROM.write(5,0); eeCheck(); //did not went to sleep
+	
+	In the Interrupts.ino:
+	
+	Under the STATE 1 == MODES section replace all code with(do not replace anything below STATE 2!)
+	=
+	//////////////////////////////////////////////////////////////////////////////////////////////
+		//                STATE 1 == MODES                                                          //
+		//////////////////////////////////////////////////////////////////////////////////////////////
+		
+		if (STATE == 1) // If STATE = 1 / Modes State
+		{
+			if ( (Int0count > 3) && (Int0count < HOLD_OFF ) ) // CLICK > 0.05 seconds
+			{
+				PrintMaster++;
+				if (PrintMaster > 3) {AsteriscMaster++; PrintMaster = 0;}
+				if (Int0count == 4) { Serial.print(F("|")); PrintMaster=0; AsteriscMaster=1;}
+				if (Int0count == PushCounter[AsteriscMaster])
+					{ Serial.print(F("*"));}
+				
+				Click = 1;
+				COLORCHANGE_FLAG = 0;
+				ToBorNotToB = 1;
+			}
+	
+			//////////////////////////////////////////////////////////////
+	
+			if ( (Int0count >= HOLD_OFF ) && (Int0count < HOLD_CONJURE ) ) // OFF
+			{
+				PrintMaster++;
+				if (PrintMaster > 3) {AsteriscMaster++; PrintMaster=0;}
+				if (Int0count == HOLD_OFF) 
+				{
+					#if defined(VISUAL) 
+						Serial.print(F("|"));
+					#endif 
+					PrintMaster=0; AsteriscMaster=8;
+				}
+				#if defined (VISUAL)
+					if (Int0count == PushCounter[AsteriscMaster])
+					{
+						Serial.print(F("*"));
+					}
+				#endif
+				
+				AnalogBlank(); //All Off
+				Click = 0;
+				ToBorNotToB = 0;
+				Armed = 0;
+				ONNS = 0; //HeartBeat flag
+				COLORCHANGE_FLAG = 0;
+				PrintMaster = 0;
+				WhatDmode = Mode; //save the current mode
+				OFF_MODE = 1;
+			}
+	
+			//////////////////////////////////////////////////////////////
+						
+			if ( (Int0count >= HOLD_CONJURE ) && (Int0count < HOLD_BYPASS1 ) ) // CONJURE MODE
+			{
+				OFF_MODE = 0; //Turn the chip back on.
+				if (Int0count == HOLD_CONJURE) { BlinkyCount = 0; }
+				if  (Mode == 0) /// OFF MODE
+				{
+					ToBorNotToB = 1;
+					if  ((Zflipped) && (Int0count > HOLD_CONJURELOOP))
+					{
+						Int0count = HOLD_CONJURE; // Reset
+						CurrentUserBundle++;
+						if (CurrentUserBundle > 4) { CurrentUserBundle = 0; }
+					}
+					else if  ((!Zflipped) && (Int0count > HOLD_CONJURELOOP))
+					{
+						Int0count = HOLD_CONJURE; // Reset
+						CurrentOffCounter++;
+						if (CurrentOffCounter > 4) { CurrentOffCounter = 0; }
+					}
+					Int0count++;
+				}
+				else
+				{
+					PrintMaster++;
+					if (PrintMaster > 3) {AsteriscMaster++; PrintMaster=0; }
+					if (Int0count == HOLD_CONJURE) { Serial.print(F("|")); PrintMaster=0; AsteriscMaster=23;}
+					#if defined(VISUAL)
+						if (Int0count == PushCounter[AsteriscMaster])
+						{ 
+							Serial.print(F("*"));
+						}
+					#endif
+					
+					if (BlinkyCount > 6) { BlinkyCount = 0; }
+					BlinkyCount++;
+					if (BlinkyCount == 1) { Blinky(0,1,0,200); }
+					if (BlinkyCount == 3) { Blinky(0,0,0,50); }
+					CONJUREMODE_FLAG = true;
+				}
+			}
+			
+			//////////////////////////////////////////////////////////////
+			
+			if ( ( (Int0count >= HOLD_BYPASS1) && (Int0count < HOLD_COLORCHANGE) )
+			/*if*/	|| ( (Int0count >= HOLD_BYPASS2) && (Int0count < HOLD_RESET) ) ) // CHIPSET BYPASS
+			{
+				if ( (Int0count == HOLD_BYPASS1) || (Int0count == HOLD_BYPASS2) )
+					{ BlinkyCount = 0; } //Reset Count		
+				if (BlinkyCount > 6) { BlinkyCount = 0; }
+				BlinkyCount++;
+				if (BlinkyCount == 1) { Blinky(1,1,1,5); }
+				if (BlinkyCount == 3) { Blinky(0,0,0,50); }
+				CONJUREMODE_FLAG = false;
+				COLORCHANGE_FLAG = 0; //UNCOMMENT THIS
+				Int0count++; //BYPASS ACCELERATION
+			}
+			
+			//////////////////////////////////////////////////////////////
+			
+			if ( (Int0count >= HOLD_COLORCHANGE ) && (Int0count < HOLD_BYPASS2 ) ) // VARIATION COLOR SET
+			{
+				if  (Int0count == HOLD_COLORCHANGE) { BlinkyCount = 0; } //Reset Count
+				
+				PrintMaster++;
+				if (PrintMaster > 3) { AsteriscMaster++; PrintMaster=0; }
+				if (Int0count == HOLD_COLORCHANGE) { Serial.print(F("|")); PrintMaster=0; AsteriscMaster=23; }
+				#if defined(VISUAL)
+					if (Int0count == PushCounter[AsteriscMaster])
+					{
+						Serial.print(F("*"));
+					}
+				#endif
+				
+				if (BlinkyCount > 6) { BlinkyCount = 0; }
+				BlinkyCount++;
+				if (BlinkyCount == 1) { Blinky(1,1,0,200); }
+				if (BlinkyCount == 3) { Blinky(0,0,0,50); }
+				COLORCHANGE_FLAG = 1;
+				//Serial.println(F(" > COLOR CHANGE INTERRUPT")); //DEBUGGGGGGGGGGGGGGGGGGGGGGGGG
+			}
+			
+			//////////////////////////////////////////////////////////////
+			
+			//REPEAT CHIPSET BYPASS
+			
+			//////////////////////////////////////////////////////////////
+			
+			if ( (Int0count >= HOLD_RESET) && (Int0count < HOLD_FUCKEDUP) ) // FACTORY RESET
+			{
+				if (Int0count == HOLD_RESET)
+					{ BlinkyCount = 0; } //Reset Count
+				else if (BlinkyCount > 6)
+					{ BlinkyCount = 0; }
+				BlinkyCount++;
+				
+				switch (BlinkyCount)
+				{
+					case 2:
+						Blinky(1,0,0,500);
+						break;
+					
+					case 4:
+						Blinky(0,0,1,500);
+						break;
+				}
+				MODERESET_FLAG = 1;	
+			}
+			
+			//////////////////////////////////////////////////////////////
+			
+			if (Int0count >= HOLD_FUCKEDUP) //OH, CRAP I SCREWED UP... GO BACK TO BLANK
+			{
+				#if defined(VISUAL)
+					Serial.println();
+					Serial.println(F("> OH, CRAP I SCREWED UP... NEVER MIND!"));
+				#endif
+				BlinkyCount = 0; //Reset Count
+				AnalogBlank(); //All Off
+				MODERESET_FLAG = 0;
+				Click = 0;
+				ToBorNotToB = 0;
+				Mode = 0;
+			}
+		}
+		
+In push.ino:
+
+Under the first if (Click) replace:
+MaxUserModes = UserCmodes[CurrentUserBundle][0];
+			CurrentUserMode++;
+			if (CurrentUserMode > MaxUserModes) { CurrentUserMode = 1;}
+			if (MaxUserModes==1)
+			{
+				Mode = 0;
+			}
+			else
+			{
+				Mode = (UserCmodes[CurrentUserBundle][CurrentUserMode]); 
+			}
+With this
+=
+if (CONJUREMODE_ENABLED)
+				{
+					Serial.print(F("CurrentUserMode = ")); Serial.println(CurrentUserMode);
+					if (Mode == 0)
+						{ Mode = UserCmodes[CurrentUserBundle][CONJUREMODE_MODE]; }
+					else { Mode = 0; }
+				}
+				else
+				{
+					MaxUserModes = UserCmodes[CurrentUserBundle][0];
+					CurrentUserMode++;
+					if (CurrentUserMode > MaxUserModes) { CurrentUserMode = 1; }
+					if (MaxUserModes==1)
+						{ Mode = 0; }
+					else { Mode = (UserCmodes[CurrentUserBundle][CurrentUserMode]); }
+					
+Between the code for OFF_MODE and COLORCHANGE_FLAG add this
+=
+if (CONJUREMODE_FLAG)
+			{
+				if (CONJUREMODE_ENABLED)
+					{ 
+						CONJUREMODE_ENABLED = false;
+						CONJUREMODE_MODE = 0;
+						eeCheck();
+						EEPROM.write(488,0);
+						eeCheck();
+					}
+				else
+				{
+					CONJUREMODE_ENABLED = true;
+					CONJUREMODE_MODE = CurrentUserMode;
+					eeCheck();
+					EEPROM.write(488,CONJUREMODE_MODE);
+					eeCheck();
+				}
+				CONJUREMODE_FLAG = false;
+			}
+			
+In the SleepMode.ino:
+
+Starting with delay(4000);(line 78) replace all code up to and including interropts();(just before}// MODE 00) with this=
+delay(4000);
+	//MMA7660.init();
+	// check zflip here
+	zAcc = 0;
+	delay(40);
+  if (CONJUREMODE_ENABLED)
+  {
+        			#if defined(VISUAL)
+                Serial.print(F(" CONJUREMODE_MODE = "));Serial.println(CONJUREMODE_MODE);//  for debugging
+              #endif
+  }
+	MMA7660.getRaw(&xAcc,&yAcc,&zAcc);
+	Serial.print(F("  Z: "));Serial.println(zAcc);
+	if ((zAcc > 37) && (!CONJUREMODE_ENABLED))
+	{
+		Zflipped = 1;
+  	zAcc = 0;
+   	Zflip();
+	}
+        else    { ZNflip(); }
+	//////////////////////////////////////////////////////
+
+	noInterrupts();	// disable interrupts
+
+	if (AllYourBaseAreBelongToUs)// full blast factory reset
+	{// AllYourBaseAreBelongToUs
+		// reset here
+		eepromWrite(0,0);
+		eeCheck();
+		eepromWriteFactory();
+		eepromLoad();
+		
+		CONJUREMODE_MODE = 0;
+		CONJUREMODE_ENABLED = false;
+		eeCheck();EEPROM.write(488,0);eeCheck();
+		
+		BLINKPWM(150,150,150 ,300,10);
+		AllYourBaseAreBelongToUs = 0;
+	}// AllYourBaseAreBelongToUs
+
+	////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////
+
+	CurrentOffCounter = 0;
+	BPM_Counter=0;
+	MaxUserModes = UserCmodes[CurrentUserBundle][0];
+	if (CONJUREMODE_ENABLED)
+		{ CurrentUserMode = CONJUREMODE_MODE; }
+	else { CurrentUserMode = 1; }
+	Mode = UserCmodes[CurrentUserBundle][CurrentUserMode]; 
+	eeCheck();EEPROM.write(5,0);eeCheck();// did not went to sleep
+	
+	ToBorNotToB = 1;
+	osmPWM_Plane(0, 0, 0, 5);
+	Zflipped = 0;
+	OFF_MODE = 0;
+	STATE = 1;
+	Click = 0;
+	Int0count = 0;
+
+	interrupts(); // enable interrupts
+	
+Below void Zflip(void) replace this:
+if (Zflipped)
+	{
+		CurrentUserBundle=0;// thank you Omar! (moved this line here)
+	}
+		
+	while ((digitalRead (BUTTON) == LOW)  && (Zflipped))
+	{// while Zflipped
+	with this
+	=
+	while ((digitalRead (BUTTON) == LOW) && (Click)) { /* Empty Loop to stop bundle change at first. */ }
+	if (digitalRead (BUTTON) == LOW) { CurrentUserBundle = 0; }
+	while ((digitalRead (BUTTON) == LOW))
+	
+	Below void ZNflip(void)(around line 200) replace this:
+	while ((digitalRead (BUTTON) == LOW)  && (!Zflipped))
+	with this
+	=
+	while ((digitalRead (BUTTON) == LOW) && (Click)) { /* Empty Loop to stop bundle change at first. */ }
+	while ((digitalRead (BUTTON) == LOW))
+
+
