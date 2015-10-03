@@ -80,21 +80,15 @@ void Mode_00(void)// Blank Sleep
 	// check zflip here
 	zAcc = 0;
 	delay(40);
-  if (CONJUREMODE_ENABLED)
-  {
-        			#if defined(VISUAL)
-                Serial.print(F(" CONJUREMODE_MODE = "));Serial.println(CONJUREMODE_MODE);//  for debugging
-              #endif
-  }
 	MMA7660.getRaw(&xAcc,&yAcc,&zAcc);
 	Serial.print(F("  Z: "));Serial.println(zAcc);
 	if ((zAcc > 37) && (!CONJUREMODE_ENABLED))
 	{
 		Zflipped = 1;
-  	zAcc = 0;
-   	Zflip();
+		zAcc = 0;
+	 	Zflip();
 	}
-        else    { ZNflip(); }
+	else { ZNflip(); }
 	//////////////////////////////////////////////////////
 
 	noInterrupts();	// disable interrupts
@@ -150,9 +144,9 @@ void Mode_00(void)// Blank Sleep
 void Zflip(void)
 {// void Zflip
 	
-	while ((digitalRead (BUTTON) == LOW) && (Click)) { /* Empty Loop to stop bundle change at first. */ }
+	while ( (digitalRead (BUTTON) == LOW) && ( (Click) || (OFF_MODE) ) ) { /* Empty Loop to stop bundle change at first. */ }
 	if (digitalRead (BUTTON) == LOW) { CurrentUserBundle = 0; }
-	while ((digitalRead (BUTTON) == LOW))
+	while (digitalRead (BUTTON) == LOW)
 	{
 		
 		OgooD = 1;
@@ -199,7 +193,7 @@ void Zflip(void)
 
 void ZNflip(void)
 {// void ZNflip
-	while ((digitalRead (BUTTON) == LOW) && (Click)) { /* Empty Loop to stop bundle change at first. */ }
+	while ((digitalRead (BUTTON) == LOW) && (Click)) { /* Empty Loop to stop red flash on power up. */ }
 	while ((digitalRead (BUTTON) == LOW))
 	{// while Zflipped
 		
