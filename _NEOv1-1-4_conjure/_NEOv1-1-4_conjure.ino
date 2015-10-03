@@ -406,22 +406,22 @@ const PROGMEM  uint8_t ModeSetFLASH [13][36]= // FACTORY DEFAULT
 	2,1,  12,0,  8,1,  0,0,  0,0,  0,0,  0,0,  0,0,  0,2,    // Mode 1  // Prime B
 	
 	1,1,  4,0,  0,0,  16,0,  5,0,  2,2,  18,0,  0,0,  0,3,    // Mode 2  // Prime A
-	3,1,  3,0,  1,0,  16,0,  22,0,  0,0,  0,0,  0,0,  0,4,    // Mode 2  // Prime B
+	3,1,  3,3,  1,0,  16,0,  22,0,  0,0,  0,0,  0,0,  0,4,    // Mode 2  // Prime B
 	
 	2,1,  13,0,  31,0,  11,0,  0,0,  0,0,  0,0,  0,0,  0,5,      // Mode 3  // Prime A
 	3,1,  6,0,  14,0,  16,0,  4,0,  0,0,  0,0,  0,0,  0,6,    // Mode 3  // Prime B
 	
-	4,1,  7,0,  14,0,  2,2,  1,0,  0,0,  0,0,  0,0,  0,7,    // Mode 4  // Prime A
+	7,1,  32,3,  13,0,  23,0,  14,0,  14,0,  2,0,  6,3,  0,7,    // Mode 4  // Prime A
 	1,1,  2,0,  8,0,  12,0,  28,0,  22,0,  0,0,  0,0,  0,8,    // Mode 4  // Prime B
 	
 	3,1,  7,0,  11,0,  10,2,  0,0,  0,0,  0,0,  0,0,  0,9,    // Mode 5  // Prime A
 	3,1,  19,0,  1,0,  4,2,  0,0,  0,0,  0,0,  0,0,  0,10,    // Mode 5  // Prime B
 	
-	3,1,    5,0,  8,0,  14,0,  20,0,  0,0,  0,0,  0,0,  0,11,   // Mode 6 // Prime A
+	3,1,    7,0,  20,0,  12,0,  20,0,  0,0,  0,0,  0,0,  0,11,   // Mode 6 // Prime A
 	1,1,    0,0,  0,0,  0,0,  0,0,  0,0,  0,0,  0,0,  0,12,   // Mode 6 // Prime B
 	
 	3,1,    21,0,  16,0,  11,0,  5,0,  11,0,  0,0,  0,0,  0,13,   // Mode 7 // Prime A
-	4,1,    14,1,  3,0,  11,0,  20,0,  0,0,  0,0,  0,0,  0,14,   // Mode 7 // Prime B
+	4,1,    6,2,  3,0,  11,0,  20,0,  0,0,  0,0,  0,0,  0,14,   // Mode 7 // Prime B
 	
 	5,1,    1,0,  9,0,  21,0,  5,0,  11,0,  0,0,  0,0,  0,15,   // Mode 8 // Prime A
 	1,1,    0,0,  0,0,  0,0,  0,0,  0,0,  0,0,  0,0,  0,16,   // Mode 8 // Prime B
@@ -456,7 +456,7 @@ volatile byte UserCmodes[5][14] = // USE: UserCmodes[CurrentUserBundle][CurrentU
 	///////
 	//Max//
 	///////
-	7,       1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, // Bundle 1
+	6,       1, 2, 3, 4, 6, 7, 5, 8, 9, 10, 11, 12, 0, // Bundle 1
 	
 	12,      2, 4, 1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 0, // Bundle 2
 	
@@ -499,7 +499,6 @@ void setup()
 	TimerMax(); // Sets Timers @ setup.ino
 	
 	eeCheck(); WentToSleep = EEPROM.read(5); eeCheck();
-	
 	attachInterrupt(0, pushInterrupt, FALLING); // Interrupt on Push Button (Digital 2)
 	
 	if (WentToSleep)

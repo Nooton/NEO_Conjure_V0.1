@@ -50,7 +50,6 @@ void eepromWriteFactory(void)
 	
 	MemCheck = EEPROM.read(0);
 	eeCheck();
-	eeCheck();EEPROM.write(488,0);eeCheck();
 	
 	if (MemCheck == CurrentVersion) /// IF EEPROM BANK 0 == 0x42
 	{
