@@ -1,10 +1,10 @@
 /*
-																		 ____   _____ __  __                     _
-																		/ __ \ / ____|  \/  |                   | |
+                                     ____   _____ __  __                     _
+                                    / __ \ / ____|  \/  |                   | |
 __      ____      ____      __     | |  | | (___ | \  / |       ___ ___   __| | ___  ___
 \ \ /\ / /\ \ /\ / /\ \ /\ / /     | |  | |\___ \| |\/| |      / __/ _ \ / _` |/ _ \/ __|
  \ V  V /  \ V  V /  \ V  V /   _  | |__| |____) | |  | |  _  | (_| (_) | (_| |  __/\__ \
-	\_/\_/    \_/\_/    \_/\_/   (_)  \____/|_____/|_|  |_| (_)  \___\___/ \__,_|\___||___/
+  \_/\_/    \_/\_/    \_/\_/   (_)  \____/|_____/|_|  |_| (_)  \___\___/ \__,_|\___||___/
 
 57 65 20 68 61 76 65 20 61 6c 6c 20 74 68 65 20 6c 69 67 68 74 20 77 65 20 6e 65 65 64 2c 20 77 65 20 
 6a 75 73 74 20 6e 65 65 64 20 74 6f 20 70 75 74 20 69 74 20 69 6e 20 70 72 61 63 74 69 63 65 2e 0d 0a
@@ -27,24 +27,24 @@ __      ____      ____      __     | |  | | (___ | \  / |       ___ ___   __| | 
 * 1.00      Initial public release.
 * 1.01      Fix "Deadly Sleep" on some chips causing the chip to die after going to sleep mode.
 * 1.1.2b    - "Deadly Sleep" fixed
-						- No skip to next mode after sleep from v1.2
-						- Added safety valve to Reset. You must reset after Off mode before 30 seconds of Off.(Backpack Proof).
-						- Saves mode if the there is a battery glitch.
-						- Bundle is not lost if you remove the battery.
-						- Minor comment fix 
-						KNOWN ISSUES: Color Pallete. It's being fixed on v1.2.2
+            - No skip to next mode after sleep from v1.2
+            - Added safety valve to Reset. You must reset after Off mode before 30 seconds of Off.(Backpack Proof).
+            - Saves mode if the there is a battery glitch.
+            - Bundle is not lost if you remove the battery.
+            - Minor comment fix 
+            KNOWN ISSUES: Color Pallete. It's being fixed on v1.2.2
 * 1.1.3b    5 AM Omar's Edition 
-						- "I don't think my chips remember which bundle they are on?" Fixed	
+            - "I don't think my chips remember which bundle they are on?" Fixed	
 * 1.1.4     This will fix a initiation timing that caused some chips not
-						to work properly. This was a 50%-50% chances of having a not working chip.
-						This hardware/software glitch affected v1.1.2b an v1.1.3b
-						Thanks Theo Dee for spot the bug. 
-						The safety valve for this chip before going to deep sleep it's 18 seconds.
-						You have 18 seconds to do master reset or bundle changes. Once you click
-						before those 18 seconds you have all the time in the world to proceed with 
-						you changes. 
-						- Disabled (Commented out) Primes 9,10,11,12 for space (Uncomment to use them)
-						- If you need extra space, try commenting out line 105 -> "#define VISUAL..." to "//#define VISUAL ..."             
+            to work properly. This was a 50%-50% chances of having a not working chip.
+            This hardware/software glitch affected v1.1.2b an v1.1.3b
+            Thanks Theo Dee for spot the bug. 
+            The safety valve for this chip before going to deep sleep it's 18 seconds.
+            You have 18 seconds to do master reset or bundle changes. Once you click
+            before those 18 seconds you have all the time in the world to proceed with 
+            you changes. 
+            - Disabled (Commented out) Primes 9,10,11,12 for space (Uncomment to use them)
+            - If you need extra space, try commenting out line 105 -> "#define VISUAL..." to "//#define VISUAL ..."             
 *******************************************************************************/
 
 // Author's Contributions:
@@ -90,11 +90,42 @@ Modified code out of:
 Libraries:
 - <avr/sleep.h>  * Copyright (C) 2006 MacSimski 2006-12-30 / Copyright (C) 2007 D. Cuartielles 2007-07-08 - Mexico DF
 
-
-
-
 */
 
+/*******************************************************************************
+* Conjure Mode for NEO 1.1.4
+* Version: 0.1 (Beta)
+* Date: 10-02-2012
+* Authors: Devon G. Redekopp & Fraser Fulton
+* Product Page: https://github.com/Nooton/NEO_Conjure_V0.1
+*
+* This Software is licensed under Creative Commons Attribution-ShareAlike 4.0
+*
+* Revision  Description
+* ========  ===========
+* 0.1       Initial public beta release.
+*******************************************************************************/
+
+// Authors' Modifications
+// - _NEOv1-1-4_conjure.ino
+// - Interrupts.ino
+// - push.ino
+// - SleepMode.ino
+
+/*
+THIS CODE IS DISTRIBUTED UNDER CREATIVE COMMONS SHARE ALIKE 4.0
+Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+You are free to:
+Share � copy and redistribute the material in any medium or format
+Adapt � remix, transform, and build upon the material
+for any purpose, even commercially.
+The licensor cannot revoke these freedoms as long as you follow the license terms.
+Under the following terms:
+Attribution � You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
+ShareAlike � If you remix, transform, or build upon the material, you must distribute your contributions under the same license as the original.
+http://creativecommons.org/licenses/by-sa/4.0/legalcode
+Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
@@ -119,7 +150,7 @@ Libraries:
 #define HOLD_COLORCHANGE  330   //Color Program Mode 5.5s to 7.5s
 #define HOLD_BYPASS2      450   //Bypass 7.5s to 12s
 #define HOLD_RESET        650   //Reset 12s to 20s
-#define HOLD_FUCKEDUP     900  // +20 seconds , OH, CRAP I SCREWED UP... GO BACK TO BLANK
+#define HOLD_FUCKEDUP     900   // +20 seconds , OH, CRAP I SCREWED UP... GO BACK TO BLANK
 
 #include "LowPower.h"    // LOW POWER SLEEP (OPTION A)
 #include <Wire.h>        // I2C LIBRARY
