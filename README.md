@@ -1,25 +1,18 @@
 # NEO_Conjure_V0.1
-/*******************************************************************************
 * Conjure Mode for NEO 1.1.4
 * Version: 0.1 (Beta)
 * Date: 10-02-2012
 * Authors: Devon G. Redekopp & Fraser Fulton
 * Product Page: https://github.com/Nooton/NEO_Conjure_V0.1
-*
+
 * This Software is licensed under Creative Commons Attribution-ShareAlike 4.0
-*
-* Revision  Description
-* ========  ===========
-* 0.1       Initial public beta release.
-*******************************************************************************/
 
-// Authors' Modifications
-// - _NEOv1-1-4_conjure.ino
-// - Interrupts.ino
-// - push.ino
-// - SleepMode.ino
+Authors' Modifications
+* _NEOv1-1-4_conjure.ino
+* Interrupts.ino
+* push.ino
+* SleepMode.ino
 
-/*
 THIS CODE IS DISTRIBUTED UNDER CREATIVE COMMONS SHARE ALIKE 4.0
 Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
 You are free to:
@@ -32,7 +25,6 @@ Attribution ? You must give appropriate credit, provide a link to the license, a
 ShareAlike ? If you remix, transform, or build upon the material, you must distribute your contributions under the same license as the original.
 http://creativecommons.org/licenses/by-sa/4.0/legalcode
 Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
-*/
 
 This is the beta version of our conjure mode enabled chip. Please report any bugs found so we can fix them for the full release on NEO v2 when it becomes available. Ensure you turn off the visual navigation with this beta version as it will not work otherwise.
 
