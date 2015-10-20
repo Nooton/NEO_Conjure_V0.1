@@ -2,7 +2,7 @@
 * Conjure Mode for NEO 1.1.4
 * Version: 0.1 (Beta)
 * Date: 10-02-2012
-* Authors: Devon G. Redekopp & Fraser Fulton
+* Authors: Fraser Fulton & Devon G. Redekopp
 * Product Page: https://github.com/Nooton/NEO_Conjure_V0.1
 
 * This Software is licensed under Creative Commons Attribution-ShareAlike 4.0
